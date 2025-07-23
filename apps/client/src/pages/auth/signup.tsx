@@ -42,8 +42,8 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      await signup(name, email, password); // ✅ your API call
-      await login(email, password); // ✅ login to get session cookie
+      await signup(name, email, password); 
+      await login(email, password);
       const me = await api.post("/auth/me");
       setUser(me.data);
       navigate("/");
@@ -95,7 +95,7 @@ export default function SignupPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder="youremail@example.com"
               required
             />
           </FormControl>
@@ -107,7 +107,7 @@ export default function SignupPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Password"
               required
             />
           </FormControl>

@@ -23,7 +23,7 @@ export class AuthService {
     if (user) {
       throw new ForbiddenException('User already exists');
     }
-    const hashedPassword = await bcrypt.hash(body.password, 10);
+    const hashedPassword: string = await bcrypt.hash(body.password, 10);
     const newUser = await this.usersService.create({
       ...body,
       password: hashedPassword,
@@ -36,7 +36,10 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const isPasswordValid = await bcrypt.compare(body.password, user.password);
+    const isPasswordValid: boolean = await bcrypt.compare(
+      body.password,
+      user.password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -49,9 +52,11 @@ export class AuthService {
       access_token: await this.jwtService.signAsync(payload),
     };
   }
-
+  private readonly cookieName = process.env.COOKIE_NAME || 'accesss_token';
   async me(req: Request) {
-    const token = req.cookies?.access_token;
+    const token = (req.cookies as Record<string, string> | undefined)?.[
+      this.cookieName
+    ];
     if (!token) {
       throw new UnauthorizedException('No access token found');
     }

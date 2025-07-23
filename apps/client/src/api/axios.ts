@@ -15,7 +15,9 @@ api.interceptors.response.use(
     const isLogoutEndpoint = err.config?.url?.includes("/logout");
 
     if (is401 && !isLogoutEndpoint) {
-      const hasAuthCookie = document.cookie.includes("access_token"); // ← customize this
+      const hasAuthCookie = document.cookie.includes(
+        import.meta.env.COOKIE_NAME || "access_token"
+      ); // ← customize this
       console.log(hasAuthCookie);
 
       if (user && hasAuthCookie) {

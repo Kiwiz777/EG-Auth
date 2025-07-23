@@ -26,7 +26,7 @@ export default function LoginPage() {
     try {
       const data = await login(email, password);
       console.log("Login successful:", data);
-      const me = await api.post("/auth/me"); // Get user info
+      const me = await api.post("/auth/me");
       setUser(me.data);
       navigate("/");
     } catch (err: any) {
@@ -84,7 +84,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="password"
               required
             />
           </FormControl>

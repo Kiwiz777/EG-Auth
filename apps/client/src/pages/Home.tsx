@@ -13,7 +13,7 @@ export default function Home() {
     navigate("/login");
   };
 
-  if (!user) return null; // Or a fallback, or redirect guard
+  if (!user) return null;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
@@ -22,13 +22,13 @@ export default function Home() {
           level="h2"
           className="text-2xl font-bold text-gray-900 dark:text-white mb-4"
         >
-          Welcome, {user.name} 👋
+          Welcome, {user.name}
         </Typography>
         <Typography
           level="body-md"
           className="text-gray-600 dark:text-gray-300 mb-6"
         >
-          You're logged in and can now explore the app.
+          Welcome to the application.
         </Typography>
         <Button
           variant="solid"

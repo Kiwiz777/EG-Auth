@@ -12,7 +12,6 @@ function App() {
   if (loading) return <div>Loading...</div>;
   return (
     <Routes>
-      {/* <Route path="/" element={<HomePage />} /> */}
       <Route
         path="/login"
         element={

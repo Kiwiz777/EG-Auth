@@ -1,6 +1,6 @@
 // src/store/auth.ts
 import { create } from "zustand";
-import * as authApi from "../api/auth"; // adjust if your path differs
+import * as authApi from "@/api/auth";
 
 type User = {
   id: string;
