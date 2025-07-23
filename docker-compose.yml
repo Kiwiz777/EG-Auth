@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        COOKIE_NAME: ${COOKIE_NAME}
+        BACKEND_PORT: ${BACKEND_PORT}
+        JWT_SECRET: ${JWT_SECRET}
+        DB_NAME: ${DB_NAME}
+        MONGODB_CONN_STRING: ${MONGODB_CONN_STRING}
+        JWT_EXP_TIME: ${JWT_EXP_TIME}
+        CORS_ORIGIN: ${CORS_ORIGIN}
+        VITE_API_URL: ${VITE_API_URL}
+    container_name: eg-auth-backend
+    ports:
+      - "3000:3000"
+    environment:
+      COOKIE_NAME: ${COOKIE_NAME}
+      BACKEND_PORT: ${BACKEND_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      DB_NAME: ${DB_NAME}
+      MONGODB_CONN_STRING: ${MONGODB_CONN_STRING}
+      JWT_EXP_TIME: ${JWT_EXP_TIME}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        COOKIE_NAME: ${COOKIE_NAME}
+    container_name: eg-auth-frontend
+    ports:
+      - "81:80"
+    environment:
+      COOKIE_NAME: ${COOKIE_NAME}
+      VITE_API_URL: http://localhost:3000/api
