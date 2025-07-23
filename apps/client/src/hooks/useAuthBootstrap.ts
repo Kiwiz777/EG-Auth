@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../store/auth";
-import api from "../api/axios"; // Axios with `withCredentials: true`
+import api from "../api/axios";
 
 export function useAuthBootstrap() {
   const user = useAuthStore((s) => s.user);

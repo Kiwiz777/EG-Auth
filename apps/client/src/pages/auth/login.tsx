@@ -2,7 +2,7 @@ import * as React from "react";
 import Typography from "@mui/joy/Typography";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
-import Input from "@mui/joy/Input";
+import TextField from "@mui/material/TextField";
 import Button from "@mui/joy/Button";
 import Link from "@mui/joy/Link";
 import Card from "@mui/joy/Card";
@@ -11,6 +11,11 @@ import Alert from "@mui/material/Alert";
 import { useAuthStore } from "@/store/auth";
 import { useNavigate } from "react-router-dom";
 import api from "@/api/axios";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import axios from "axios";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -18,10 +23,36 @@ export default function LoginPage() {
   const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [emailError, setEmailError] = React.useState("");
+
+  const [showPassword, setShowPassword] = React.useState(false);
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+
+  const handleMouseDownPassword = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
+  };
+
+  const handleMouseUpPassword = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
+  };
+
+  const validateEmail = (email: string) =>
+    /^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/.test(email);
+
   const setUser = useAuthStore((s) => s.setUser);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!validateEmail(email)) {
+      setEmailError("Invalid email format.");
+      return;
+    }
+    if (emailError) return;
     setLoading(true);
     try {
       const data = await login(email, password);
@@ -29,8 +60,12 @@ export default function LoginPage() {
       const me = await api.post("/auth/me");
       setUser(me.data);
       navigate("/");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed");
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Login failed.");
+      }
     } finally {
       setLoading(false);
     }
@@ -59,7 +94,12 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <Alert color="danger" variant="soft" className="mb-4">
+          <Alert
+            severity="error"
+            variant="standard"
+            className="mb-4"
+            icon={false}
+          >
             {error}
           </Alert>
         )}
@@ -67,23 +107,50 @@ export default function LoginPage() {
         <form className="space-y-4" onSubmit={handleSubmit}>
           <FormControl>
             <FormLabel>Email</FormLabel>
-            <Input
+            <TextField
+              error={emailError ? true : false}
+              helperText={emailError ? emailError : ""}
               name="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              onChange={(e) => {
+                const val = e.target.value;
+                setEmail(val);
+                setEmailError(
+                  validateEmail(val) ? "" : "Invalid email format."
+                );
+              }}
+              placeholder="youremail@mail.com"
               required
             />
           </FormControl>
 
           <FormControl>
             <FormLabel>Password</FormLabel>
-            <Input
+            <TextField
               name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label={
+                        showPassword
+                          ? "hide the password"
+                          : "display the password"
+                      }
+                      onClick={handleClickShowPassword}
+                      onMouseDown={handleMouseDownPassword}
+                      onMouseUp={handleMouseUpPassword}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
               placeholder="password"
               required
             />

@@ -2,19 +2,21 @@ import * as React from "react";
 import Typography from "@mui/joy/Typography";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
-import Input from "@mui/joy/Input";
+import TextField from "@mui/material/TextField";
 import Button from "@mui/joy/Button";
 import Link from "@mui/joy/Link";
 import Card from "@mui/joy/Card";
 import Alert from "@mui/material/Alert";
-import { signup, login } from "@/api/auth";
-import { useAuthStore } from "@/store/auth";
+import { signup } from "@/api/auth";
 import { useNavigate } from "react-router-dom";
-import api from "@/api/axios";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import axios from "axios";
 
 export default function SignupPage() {
   const navigate = useNavigate();
-  const setUser = useAuthStore((s) => s.setUser);
 
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -22,16 +24,48 @@ export default function SignupPage() {
   const [repeatPassword, setRepeatPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [emailError, setEmailError] = React.useState("");
+  const [passwordError, setPasswordError] = React.useState("");
+  const [nameError, setNameError] = React.useState("");
+  const [repeatPasswordError, setRepeatPasswordError] = React.useState("");
+  const [success, setSuccess] = React.useState("");
+
+  const [showPassword, setShowPassword] = React.useState(false);
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+
+  const handleMouseDownPassword = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
+  };
+
+  const handleMouseUpPassword = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
+  };
+
+  const validateEmail = (email: string) =>
+    /^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/.test(email);
 
   const validatePassword = (pass: string) =>
     /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(pass);
 
+  const validateName = (name: string) => name.trim().length >= 3;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setRepeatPasswordError("");
 
+    if (!validateName(name)) {
+      setNameError("Name must be at least 3 characters.");
+      return;
+    }
     if (password !== repeatPassword) {
-      return setError("Passwords do not match.");
+      setRepeatPasswordError("Passwords do not match.");
+      return;
     }
 
     if (!validatePassword(password)) {
@@ -39,16 +73,29 @@ export default function SignupPage() {
         "Password must be at least 8 characters long and include a letter, a number, and a special character."
       );
     }
-
+    if (!validateEmail(email)) {
+      setEmailError("Invalid email format.");
+      return;
+    }
+    if (emailError || passwordError || nameError || repeatPasswordError) return;
     setLoading(true);
     try {
-      await signup(name, email, password); 
-      await login(email, password);
-      const me = await api.post("/auth/me");
-      setUser(me.data);
-      navigate("/");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Signup failed.");
+      const res = await signup(name, email, password);
+      setSuccess(res);
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
+      return;
+      //await login(email, password);
+      //const me = await api.post("/auth/me");
+      //setUser(me.data);
+      //navigate("/");
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Login failed.");
+      }
     } finally {
       setLoading(false);
     }
@@ -71,18 +118,41 @@ export default function SignupPage() {
         </div>
 
         {error && (
-          <Alert color="danger" variant="soft" className="mb-4">
+          <Alert
+            severity="error"
+            variant="standard"
+            className="mb-4"
+            icon={false}
+          >
             {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert
+            severity="success"
+            variant="standard"
+            className="mb-4"
+            icon={false}
+          >
+            {success}
           </Alert>
         )}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <FormControl>
             <FormLabel>Name</FormLabel>
-            <Input
+            <TextField
+              error={nameError ? true : false}
+              helperText={nameError ? nameError : ""}
               name="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setName(val);
+                setNameError(
+                  validateName(val) ? "" : "Name must be at least 3 characters."
+                );
+              }}
               placeholder="John Doe"
               required
             />
@@ -90,11 +160,19 @@ export default function SignupPage() {
 
           <FormControl>
             <FormLabel>Email</FormLabel>
-            <Input
+            <TextField
+              error={emailError ? true : false}
+              helperText={emailError ? emailError : ""}
               name="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setEmail(val);
+                setEmailError(
+                  validateEmail(val) ? "" : "Invalid email format."
+                );
+              }}
               placeholder="youremail@example.com"
               required
             />
@@ -102,11 +180,40 @@ export default function SignupPage() {
 
           <FormControl>
             <FormLabel>Password</FormLabel>
-            <Input
+            <TextField
+              error={passwordError ? true : false}
+              helperText={passwordError ? passwordError : ""}
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setPassword(val);
+                setPasswordError(
+                  validatePassword(val)
+                    ? ""
+                    : "Must include a letter, number, and special character."
+                );
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label={
+                        showPassword
+                          ? "hide the password"
+                          : "display the password"
+                      }
+                      onClick={handleClickShowPassword}
+                      onMouseDown={handleMouseDownPassword}
+                      onMouseUp={handleMouseUpPassword}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
               placeholder="Password"
               required
             />
@@ -114,12 +221,20 @@ export default function SignupPage() {
 
           <FormControl>
             <FormLabel>Repeat Password</FormLabel>
-            <Input
+            <TextField
+              error={repeatPasswordError ? true : false}
+              helperText={repeatPasswordError ? repeatPasswordError : ""}
               name="repeatPassword"
               type="password"
               value={repeatPassword}
-              onChange={(e) => setRepeatPassword(e.target.value)}
-              placeholder="••••••••"
+              onChange={(e) => {
+                const val = e.target.value;
+                setRepeatPassword(val);
+                setRepeatPasswordError(
+                  val === password ? "" : "Passwords do not match."
+                );
+              }}
+              placeholder="repeatPassword"
               required
             />
           </FormControl>
