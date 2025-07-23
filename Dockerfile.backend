@@ -1,0 +1,36 @@
+# Stage 1: Build Nest Backend
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+COPY . .
+
+# Declare build-time arguments
+ARG COOKIE_NAME
+ARG BACKEND_PORT
+ARG JWT_SECRET
+ARG DB_NAME
+ARG MONGODB_CONN_STRING
+ARG JWT_EXP_TIME
+ARG CORS_ORIGIN
+
+ENV COOKIE_NAME=$COOKIE_NAME
+ENV BACKEND_PORT=$BACKEND_PORT
+ENV JWT_SECRET=$JWT_SECRET
+ENV DB_NAME=$DB_NAME
+ENV MONGODB_CONN_STRING=$MONGODB_CONN_STRING
+ENV JWT_EXP_TIME=$JWT_EXP_TIME
+ENV CORS_ORIGIN=$CORS_ORIGIN
+
+RUN npm install
+RUN npm run build --workspace=server
+
+# Stage 2: Runtime Image
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+COPY --from=builder /app/apps/server/dist ./dist
+COPY --from=builder /app/apps/server/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+
+EXPOSE 3000
+CMD ["node", "dist/main"]

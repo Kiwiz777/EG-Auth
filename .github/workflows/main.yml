@@ -1,4 +1,4 @@
-name: Build Fullstack Docker Image
+name: Build Frontend & Backend Images
 
 on:
   push:
@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Node.js
@@ -17,9 +17,18 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Build Docker image with envs
+      - name: Build Frontend Docker Image
         run: |
           docker build \
+            --file Dockerfile.frontend \
+            --build-arg VITE_API_URL=${{ secrets.VITE_API_URL }} \
+            --build-arg COOKIE_NAME=${{ secrets.COOKIE_NAME }} \
+            -t ra41aa/eg-auth:frontend .
+
+      - name: Build Backend Docker Image
+        run: |
+          docker build \
+            --file Dockerfile.backend \
             --build-arg COOKIE_NAME=${{ secrets.COOKIE_NAME }} \
             --build-arg BACKEND_PORT=${{ secrets.BACKEND_PORT }} \
             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
@@ -27,5 +36,4 @@ jobs:
             --build-arg MONGODB_CONN_STRING=${{ secrets.MONGODB_CONN_STRING }} \
             --build-arg JWT_EXP_TIME=${{ secrets.JWT_EXP_TIME }} \
             --build-arg CORS_ORIGIN=${{ secrets.CORS_ORIGIN }} \
-            --build-arg VITE_API_URL=${{ secrets.VITE_API_URL }} \
-            -t ra41aa/eg-auth:latest .
+            -t ra41aa/eg-auth:backend .
