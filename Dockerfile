@@ -26,7 +26,7 @@ ENV CORS_ORIGIN=$CORS_ORIGIN
 ENV VITE_API_URL=$VITE_API_URL
 
 
-RUN npm ci
+RUN npm install
 
 # Build frontend
 RUN npm run build --workspace=client
